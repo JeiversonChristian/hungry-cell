@@ -1,9 +1,12 @@
 // script principal
 
-// funções importadas -------------------------------------------------------------
+// importações --------------------------------------------------------------------
 
-import { limpar_canvas, desenhar_celula, inicializar_celula } from './scripts/funcoes.js';
-import { celula } from './scripts/objetos.js';
+// funções
+import { calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, desenhar_celula, inicializar_celula, limpar_canvas } from './scripts/funcoes.js';
+
+// objetos
+import { celulas } from './scripts/objetos.js';
 
 // --------------------------------------------------------------------------------
 
@@ -29,24 +32,50 @@ const tamanho_canvas_vertical = canvas.height / unidade_minima;
 
 // variáveis do jogo
 let jogo_rodando = true;
-let x_celula = 50; // Posição inicial x
-let y_celula = 50; // Posição inicial y
-let raio_celula = 2*unidade_minima;
-let cor_celula = "blue";
+let raio_celulas = 2*unidade_minima;
+let cor_celulas = "blue";
 
 // --------------------------------------------------------------------------------
 
 // exucação do jogo ---------------------------------------------------------------
+
 function carregar_jogo(){
-    inicializar_celula(celula, x_celula, y_celula, raio_celula, cor_celula);
+    // incializar células
+    for (let i = 0; i < 10; i++) {
+        let [x, y, raio, cor] = calcular_parametros_para_celulas(canvas.width, canvas.height, raio_celulas, cor_celulas);
+        inicializar_celula(celulas[i], x, y, raio, cor);
+        
+        // verifica se a célula não vai ficar em cima de nenhuma já incializada
+        let j = 0;
+        let dist = 0;
+        while (j <= i) {
+            if (j != i){
+                dist = calcular_distancia_entre_objetos_redondos(celulas[j], celulas[i]);
+            
+            
+                if (dist <= 2*raio_celulas) {
+                    let [x, y, raio, cor] = calcular_parametros_para_celulas(canvas.width, canvas.height, raio_celulas, cor_celulas);
+                    inicializar_celula(celulas[i], x, y, raio, cor);
+                    j = 0; // Reinicia o loop
+                    continue; // Volta para o início do loop sem executar o restante do código
+                }
+            }            
+            j++;
+        }
+    }
 }
 
 function rodar_jogo() {
     // para a execução se jogo_rodando for false
-    if (jogo_rodando == false) return;
+    if (jogo_rodando == false){
+        return;
+    } 
 
     limpar_canvas(ctx, canvas);
-    desenhar_celula(ctx, celula);
+
+    for (let i = 0; i < 10; i++) {
+        desenhar_celula(ctx, celulas[i]);
+    }
 
     // chama a função novamente para continuar o loop
     requestAnimationFrame(rodar_jogo);

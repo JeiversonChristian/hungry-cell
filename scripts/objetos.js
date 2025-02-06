@@ -1,12 +1,11 @@
 // script dos objetos da simualação
 
-// objetos das células
-const celula = {
-    x: 0,           // Posição inicial no eixo X
-    y: 0,           // Posição inicial no eixo Y
-    raio: 0,        // Raio da célula
-    cor: "",        // Cor da célula
-};
+// vetor de objetos células
+const celulas = [];
 
-export {celula};
+for (let i = 0; i < 10; i++) {
+    celulas[i] = { x: 0, y: 0, raio: 0, cor: "" };
+}
+
+export {celulas};
 
