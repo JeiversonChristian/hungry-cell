@@ -1,9 +1,13 @@
 // script das funções da simualação
 
 function atualizar_posicao_celula(celula, largura_canvas, altura_canvas) {
-    if (celula.a == 1) {
+    if (celula.a == 1 && celula.pode_andar_esq == 1){
         celula.x -= celula.v;
-    }    
+    }
+    
+    if (celula.esta_parede_esq == 1){
+        celula.x = 0 + celula.raio;
+    }
 }
 
 function calcular_distancia_entre_objetos_redondos(obj1, obj2) {
@@ -34,6 +38,23 @@ function desenhar_celula(ctx, celula) {
     ctx.closePath();
 }
 
+function detectar_colisao_paredes(celula, largura_canvas, altura_canvas) {
+    if (celula.x - celula.raio <= 0){
+        celula.esta_parede_esq = 1;
+        celula.pode_andar_esq = 0;
+    }
+    else {
+        celula.esta_parede_esq = 0;
+        celula.pode_andar_esq = 1;
+    }
+}
+
+function detectar_colisoes(celulas, quant_celulas, largura_canvas, altura_canvas) {
+    for (let i = 0; i < quant_celulas; i++) {
+        detectar_colisao_paredes(celulas[i], largura_canvas, altura_canvas);
+    }
+}
+
 function inicializar_celula(celula, x, y, raio, cor) {
     celula.x = x;
     celula.y = y;
@@ -50,4 +71,4 @@ function limpar_canvas(ctx, canvas) {
 }
 
 // Exportar as funções para serem usadas em outros arquivos
-export { atualizar_posicao_celula, calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, desenhar_celula, inicializar_celula, limpar_canvas };
+export { atualizar_posicao_celula, calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, desenhar_celula, detectar_colisoes, inicializar_celula, limpar_canvas };

@@ -3,7 +3,7 @@
 // importações --------------------------------------------------------------------
 
 // funções
-import { atualizar_posicao_celula, calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, desenhar_celula, inicializar_celula, limpar_canvas } from './scripts/funcoes.js';
+import { atualizar_posicao_celula, calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, desenhar_celula, detectar_colisoes, inicializar_celula, limpar_canvas } from './scripts/funcoes.js';
 
 // objetos
 import { celulas, comidas, quant_celulas, quant_comidas } from './scripts/objetos.js';
@@ -112,6 +112,8 @@ function rodar_jogo() {
     for (let i = 0; i < quant_celulas; i++) {
         atualizar_posicao_celula(celulas[i], canvas.width, canvas.height);
     }
+
+    detectar_colisoes(celulas, quant_celulas, canvas.width, canvas.height);
 
     // chama a função novamente para continuar o loop
     requestAnimationFrame(rodar_jogo);
