@@ -1,5 +1,11 @@
 // script das funções da simualação
 
+function atualizar_posicao_celula(celula, largura_canvas, altura_canvas) {
+    if (celula.a == 1) {
+        celula.x -= celula.v;
+    }    
+}
+
 function calcular_distancia_entre_objetos_redondos(obj1, obj2) {
     return Math.sqrt((obj1.x - obj2.x) ** 2 + (obj1.y - obj2.y) ** 2);
 }
@@ -33,6 +39,10 @@ function inicializar_celula(celula, x, y, raio, cor) {
     celula.y = y;
     celula.raio = raio;
     celula.cor = cor;
+    if (celula.tipo == "celula"){
+        celula.v = 5;
+        celula.a = 1;
+    }
 }
 
 function limpar_canvas(ctx, canvas) {
@@ -40,4 +50,4 @@ function limpar_canvas(ctx, canvas) {
 }
 
 // Exportar as funções para serem usadas em outros arquivos
-export { calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, desenhar_celula, inicializar_celula, limpar_canvas };
+export { atualizar_posicao_celula, calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, desenhar_celula, inicializar_celula, limpar_canvas };
