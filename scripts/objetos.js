@@ -20,7 +20,8 @@ for (let i = 0; i < quant_celulas; i++) {
                    esta_parede_esq: 0, 
                    esta_parede_dir: 0, 
                    esta_parede_cima: 0, 
-                   esta_parede_baixo: 0, 
+                   esta_parede_baixo: 0,
+                   esta_encostada_outra_cel: 0, 
                    tipo: "celula" };
 }
 

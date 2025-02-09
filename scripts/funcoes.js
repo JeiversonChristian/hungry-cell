@@ -38,7 +38,28 @@ function desenhar_celula(ctx, celula) {
     ctx.closePath();
 }
 
+function detectar_colisao_celulas(celulas, quant_celulas) {
+    for (let i = 0; i < quant_celulas-1; i++){
+        for (let j = i+1; j < quant_celulas; j++){
+            let dist = calcular_distancia_entre_objetos_redondos(celulas[i], celulas[j]);
+            if (dist <= 2*celulas[i].raio){
+                // se estiver no lado direito da outra célula
+                if (celulas[i].x > celulas[j].x) {
+                    celulas[i].esta_encostada_outra_cel = 1;
+                    celulas[i].pode_andar_esq = 0;
+                    break;
+                }
+                else {
+                    celulas[i].esta_encostada_outra_cel = 0;
+                    celulas[i].pode_andar_esq = 1;
+                }
+            }
+        }
+    }
+}
+
 function detectar_colisao_paredes(celula, largura_canvas, altura_canvas) {
+    // parede esquerda
     if (celula.x - celula.raio <= 0){
         celula.esta_parede_esq = 1;
         celula.pode_andar_esq = 0;
@@ -53,6 +74,7 @@ function detectar_colisoes(celulas, quant_celulas, largura_canvas, altura_canvas
     for (let i = 0; i < quant_celulas; i++) {
         detectar_colisao_paredes(celulas[i], largura_canvas, altura_canvas);
     }
+    detectar_colisao_celulas(celulas, quant_celulas);
 }
 
 function inicializar_celula(celula, x, y, raio, cor) {
