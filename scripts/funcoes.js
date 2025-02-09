@@ -30,6 +30,16 @@ function calcular_parametros_para_celulas(largura_canvas, altura_canvas, raio, c
     return [x, y, r, c];
 }
 
+function dar_pause(estado_jogo) {
+    estado_jogo.play = false;
+    estado_jogo.pause = true;    
+}
+
+function dar_play(estado_jogo) {
+    estado_jogo.play = true;
+    estado_jogo.pause = false;  
+}
+
 function desenhar_celula(ctx, celula) {
     ctx.beginPath();
     ctx.arc(celula.x, celula.y, celula.raio, 0, Math.PI * 2);
@@ -83,8 +93,20 @@ function inicializar_celula(celula, x, y, raio, cor) {
     celula.raio = raio;
     celula.cor = cor;
     if (celula.tipo == "celula"){
-        celula.v = 5;
-        celula.a = 1;
+        celula.w = 0; 
+        celula.s = 0; 
+        celula.a = 1; 
+        celula.d = 0; 
+        celula.v = 5; 
+        celula.pode_andar_esq =  1; 
+        celula.pode_andar_dir = 1; 
+        celula.pode_andar_cima = 1; 
+        celula.pode_andar_baixo = 1; 
+        celula.esta_parede_esq = 0; 
+        celula.esta_parede_dir = 0; 
+        celula.esta_parede_cima = 0; 
+        celula.esta_parede_baixo = 0;
+        celula.esta_encostada_outra_cel = 0;
     }
 }
 
@@ -93,4 +115,4 @@ function limpar_canvas(ctx, canvas) {
 }
 
 // Exportar as funções para serem usadas em outros arquivos
-export { atualizar_posicao_celula, calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, desenhar_celula, detectar_colisoes, inicializar_celula, limpar_canvas };
+export { atualizar_posicao_celula, calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, dar_pause, dar_play, desenhar_celula, detectar_colisoes, inicializar_celula, limpar_canvas };

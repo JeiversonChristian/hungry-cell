@@ -3,7 +3,7 @@
 // importações --------------------------------------------------------------------
 
 // funções
-import { atualizar_posicao_celula, calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, desenhar_celula, detectar_colisoes, inicializar_celula, limpar_canvas } from './scripts/funcoes.js';
+import { atualizar_posicao_celula, calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, dar_pause, dar_play, desenhar_celula, detectar_colisoes, inicializar_celula, limpar_canvas } from './scripts/funcoes.js';
 
 // objetos
 import { celulas, comidas, quant_celulas, quant_comidas } from './scripts/objetos.js';
@@ -32,6 +32,7 @@ const tamanho_canvas_vertical = canvas.height / unidade_minima;
 
 // variáveis do jogo
 let jogo_rodando = true;
+let estado_jogo = { play: true, pause: false };
 let raio_celulas = 2*unidade_minima;
 let cor_celulas = "blue";
 let raio_comidas = unidade_minima;
@@ -42,6 +43,12 @@ let cor_comidas = "green";
 // exucação do jogo ---------------------------------------------------------------
 
 function carregar_jogo(){
+    // reiniciar variáveis do jogo ------------------------------------------------
+    jogo_rodando = true;
+    estado_jogo.play = true;
+    estado_jogo.pause = false;
+    // ----------------------------------------------------------------------------
+
     // incializar células ---------------------------------------------------------
     for (let i = 0; i < quant_celulas; i++) {
         let [x, y, raio, cor] = calcular_parametros_para_celulas(canvas.width, canvas.height, raio_celulas, cor_celulas);
@@ -109,8 +116,10 @@ function rodar_jogo() {
         desenhar_celula(ctx, comidas[i]);
     }
 
-    for (let i = 0; i < quant_celulas; i++) {
-        atualizar_posicao_celula(celulas[i], canvas.width, canvas.height);
+    if (estado_jogo.play == true && estado_jogo.pause == false){
+        for (let i = 0; i < quant_celulas; i++) {
+            atualizar_posicao_celula(celulas[i], canvas.width, canvas.height);
+        }
     }
 
     detectar_colisoes(celulas, quant_celulas, canvas.width, canvas.height);
@@ -122,6 +131,11 @@ function rodar_jogo() {
 // inicia o jogo
 carregar_jogo();
 rodar_jogo();
+
+// eventos dos botões
+canvas_botao_play.addEventListener("click", () => dar_play(estado_jogo));
+canvas_botao_pause.addEventListener("click", () => dar_pause(estado_jogo));
+canvas_botao_restart.addEventListener("click", carregar_jogo);
 
 // --------------------------------------------------------------------------------
 
