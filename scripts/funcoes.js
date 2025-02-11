@@ -4,19 +4,6 @@ function atualizar_posicao_celulas(celulas, jogo) {
    
     for (let i = 0; i < jogo.quant_celulas; i++) {
 
-        if (celulas[i].a == 1 && celulas[i].pode_andar_esq == 1){
-            celulas[i].x -= celulas[i].vel;
-        }
-        if (celulas[i].d == 1 && celulas[i].pode_andar_dir == 1){
-            celulas[i].x += celulas[i].vel;
-        }
-        if (celulas[i].s == 1 && celulas[i].pode_andar_baixo == 1){
-            celulas[i].y += celulas[i].vel;
-        }
-        if (celulas[i].w == 1 && celulas[i].pode_andar_cima == 1){
-            celulas[i].y -= celulas[i].vel;
-        }
-        
         if (celulas[i].esta_parede_esq == 1){
             celulas[i].x = 0 + celulas[i].raio;
         }
@@ -30,11 +17,52 @@ function atualizar_posicao_celulas(celulas, jogo) {
             celulas[i].y = 0 + celulas[i].raio;
         }
 
+        if (celulas[i].a == 1 && celulas[i].pode_andar_esq == 1){
+            celulas[i].x -= celulas[i].vel;
+        }
+        if (celulas[i].d == 1 && celulas[i].pode_andar_dir == 1){
+            celulas[i].x += celulas[i].vel;
+        }
+        if (celulas[i].s == 1 && celulas[i].pode_andar_baixo == 1){
+            celulas[i].y += celulas[i].vel;
+        }
+        if (celulas[i].w == 1 && celulas[i].pode_andar_cima == 1){
+            celulas[i].y -= celulas[i].vel;
+        }
+
     }
 
 }
 
-function calcular_distancia_entre_objetos_redondos(obj1, obj2) {
+function atualizar_posicao_comidas(comidas, celulas, jogo){
+
+    for (let i = 0; i < jogo.quant_comidas; i++){
+        if (comidas[i].foi_comida == true){
+            comidas[i].foi_comida = false;
+
+            // mesma lógica da inicialização das comidas
+
+            comidas[i].x = Math.floor(Math.random() * (jogo.largura_canvas - jogo.raio_comidas - jogo.raio_comidas + 1) + jogo.raio_comidas);
+            comidas[i].y = Math.floor(Math.random() * (jogo.altura_canvas - jogo.raio_comidas - jogo.raio_comidas + 1) + jogo.raio_comidas);
+            
+            let j = 0;
+            let dist_comida_cel = 0;
+            while (j < jogo.quant_celulas) {
+                dist_comida_cel = calcular_distancia_entre_objetos_redondos(celulas[j], comidas[i]);
+
+                if (dist_comida_cel <= jogo.raio_comidas + jogo.raio_celulas) {
+                    comidas[i].x = Math.floor(Math.random() * (jogo.largura_canvas - jogo.raio_comidas - jogo.raio_comidas + 1) + jogo.raio_comidas);
+                    comidas[i].y = Math.floor(Math.random() * (jogo.altura_canvas - jogo.raio_comidas - jogo.raio_comidas + 1) + jogo.raio_comidas);
+                    j = 0; // Reinicia o loop
+                    continue; // Volta para o início do loop sem executar o restante do código
+                }
+                j++;
+            }
+        }
+    }
+}
+
+function calcular_distancia_entre_objetos_redondos(obj1, obj2){
     return Math.sqrt((obj1.x - obj2.x) ** 2 + (obj1.y - obj2.y) ** 2);
 }
 
@@ -69,8 +97,8 @@ function desenhar_comidas(ctx, comidas, jogo){
 }
 
 function desenhar_elementos(ctx, celulas, comidas, jogo) {
-    desenhar_celulas(ctx, celulas, jogo);
     desenhar_comidas(ctx, comidas, jogo);
+    desenhar_celulas(ctx, celulas, jogo);
 }
 
 function detectar_colisao_celulas(celulas, jogo) {
@@ -137,6 +165,18 @@ function detectar_colisao_celulas(celulas, jogo) {
     }
 }
 
+function detectar_colisao_comidas(celulas, comidas, jogo){
+    for (let i = 0; i < jogo.quant_celulas; i++){
+        for (let j = 0; j < jogo.quant_comidas; j++){
+            let dist = calcular_distancia_entre_objetos_redondos(celulas[i], comidas[j]);
+            // só dá pra entender com um desenho
+            if (dist <= celulas[i].raio - comidas[j].raio){
+                comidas[j].foi_comida = true;
+            }
+        }
+    }
+}
+
 function detectar_colisao_paredes(celulas, jogo){
 
     for (let i = 0; i < jogo.quant_celulas; i++){
@@ -182,9 +222,10 @@ function detectar_colisao_paredes(celulas, jogo){
     
 }
 
-function detectar_colisoes(celulas, jogo) {
+function detectar_colisoes(celulas, comidas, jogo) {
     detectar_colisao_paredes(celulas, jogo);
     detectar_colisao_celulas(celulas, jogo);
+    detectar_colisao_comidas(celulas, comidas, jogo);
 }
 
 function inicializar_celulas(celulas, jogo){
@@ -287,15 +328,17 @@ function limpar_canvas(ctx, canvas) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function mudar_direcao_celulas(celula) {
-    if (Math.floor(Math.random() * 101) < 5)
-        celula.w = Math.round(Math.random()); 
-    if (Math.floor(Math.random() * 101) < 5)
-        celula.s = Math.round(Math.random()); 
-    if (Math.floor(Math.random() * 101) < 5)
-        celula.a = Math.round(Math.random()); 
-    if (Math.floor(Math.random() * 101) < 5)
-        celula.d = Math.round(Math.random());
+function mudar_direcao_celulas(celulas, jogo) {
+    for (let i = 0; i < jogo.quant_celulas; i++) {
+        if (Math.floor(Math.random() * 101) < 5)
+            celulas[i].w = Math.round(Math.random()); 
+        if (Math.floor(Math.random() * 101) < 5)
+            celulas[i].s = Math.round(Math.random()); 
+        if (Math.floor(Math.random() * 101) < 5)
+            celulas[i].a = Math.round(Math.random()); 
+        if (Math.floor(Math.random() * 101) < 5)
+            celulas[i].d = Math.round(Math.random());
+    }
 }
 
 function reinicializar_variaveis_jogo(jogo){
@@ -305,4 +348,4 @@ function reinicializar_variaveis_jogo(jogo){
 }
 
 // Exportar as funções para serem usadas em outros arquivos
-export { atualizar_posicao_celulas, dar_pause, dar_play, desenhar_elementos, detectar_colisoes, inicializar_celulas, inicializar_comidas, limpar_canvas, mudar_direcao_celulas, reinicializar_variaveis_jogo };
+export { atualizar_posicao_celulas, atualizar_posicao_comidas ,dar_pause, dar_play, desenhar_elementos, detectar_colisoes, inicializar_celulas, inicializar_comidas, limpar_canvas, mudar_direcao_celulas, reinicializar_variaveis_jogo };

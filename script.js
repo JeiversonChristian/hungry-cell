@@ -2,7 +2,7 @@
 
 // importações --------------------------------------------------------------------
 // funções
-import { atualizar_posicao_celulas, dar_pause, dar_play, desenhar_elementos, detectar_colisoes, inicializar_celulas, inicializar_comidas, limpar_canvas, mudar_direcao_celulas, reinicializar_variaveis_jogo } from './scripts/funcoes.js';
+import { atualizar_posicao_celulas, atualizar_posicao_comidas, dar_pause, dar_play, desenhar_elementos, detectar_colisoes, inicializar_celulas, inicializar_comidas, limpar_canvas, mudar_direcao_celulas, reinicializar_variaveis_jogo } from './scripts/funcoes.js';
 
 // objetos
 import { celulas, comidas, quant_celulas, quant_comidas } from './scripts/objetos.js';
@@ -34,7 +34,7 @@ let jogo = {
     play: true, 
     pause: false,
 
-    raio_celulas: 19*unidade_minima,
+    raio_celulas: 3*unidade_minima,
     cor_celulas: "blue",
     velocidade_celulas: 5,
     quant_celulas: quant_celulas,
@@ -65,9 +65,10 @@ function rodar_jogo() {
     desenhar_elementos(ctx, celulas, comidas, jogo);
 
     if (jogo.play == true && jogo.pause == false){
-        detectar_colisoes(celulas, jogo);
+        detectar_colisoes(celulas, comidas, jogo);
         atualizar_posicao_celulas(celulas, jogo);
-        //mudar_direcao_celulas(celulas[i]);
+        atualizar_posicao_comidas(comidas, celulas, jogo);
+        mudar_direcao_celulas(celulas, jogo);
     }
 
     // chama a função novamente para continuar o loop

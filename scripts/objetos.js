@@ -2,7 +2,7 @@
 
 // vetor de objetos células
 let celulas = [];
-const quant_celulas = 3;
+const quant_celulas = 12;
 for (let i = 0; i < quant_celulas; i++) {
     celulas[i] = { 
         x: 0, 
@@ -40,7 +40,14 @@ for (let i = 0; i < quant_celulas; i++) {
 let comidas = [];
 const quant_comidas = 10;
 for (let i = 0; i < quant_comidas; i++) {
-    comidas[i] = { x: 0, y: 0, raio: 0, cor: "", tipo: "comida" };
+    comidas[i] = { 
+        x: 0, 
+        y: 0, 
+        raio: 0, 
+        cor: "", 
+        foi_comida: false, 
+        tipo: "comida" 
+    };
 }
 
 export { celulas, comidas, quant_celulas, quant_comidas };
