@@ -1,9 +1,8 @@
 // script principal
 
 // importações --------------------------------------------------------------------
-
 // funções
-import { atualizar_posicao_celula, calcular_distancia_entre_objetos_redondos, calcular_parametros_para_celulas, dar_pause, dar_play, desenhar_celula, detectar_colisoes, inicializar_celula, limpar_canvas } from './scripts/funcoes.js';
+import { atualizar_posicao_celulas, dar_pause, dar_play, desenhar_elementos, detectar_colisoes, inicializar_celulas, inicializar_comidas, limpar_canvas, mudar_direcao_celulas, reinicializar_variaveis_jogo } from './scripts/funcoes.js';
 
 // objetos
 import { celulas, comidas, quant_celulas, quant_comidas } from './scripts/objetos.js';
@@ -25,107 +24,57 @@ const canvas_botao_restart = document.getElementById("botao_restart");
 
 // configurações do jogo ----------------------------------------------------------
 
-// constantes do jogo
+// variáveis e constantes do jogo
 const unidade_minima = 5; // tamanho mínimo de uma dimensão de qualquer elemento
-const tamanho_canvas_horizontal = canvas.width / unidade_minima;
-const tamanho_canvas_vertical = canvas.height / unidade_minima;
+let jogo = {
+    largura_canvas: canvas.width,
+    altura_canvas: canvas.height,
 
-// variáveis do jogo
-let jogo_rodando = true;
-let estado_jogo = { play: true, pause: false };
-let raio_celulas = 2*unidade_minima;
-let cor_celulas = "blue";
-let raio_comidas = unidade_minima;
-let cor_comidas = "green";
+    jogo_rodando: true,
+    play: true, 
+    pause: false,
+
+    raio_celulas: 19*unidade_minima,
+    cor_celulas: "blue",
+    velocidade_celulas: 5,
+    quant_celulas: quant_celulas,
+
+    raio_comidas: unidade_minima,
+    cor_comidas: "green",
+    quant_comidas: quant_comidas
+};
 
 // --------------------------------------------------------------------------------
 
 // exucação do jogo ---------------------------------------------------------------
 
 function carregar_jogo(){
-    // reiniciar variáveis do jogo ------------------------------------------------
-    jogo_rodando = true;
-    estado_jogo.play = true;
-    estado_jogo.pause = false;
-    // ----------------------------------------------------------------------------
-
-    // incializar células ---------------------------------------------------------
-    for (let i = 0; i < quant_celulas; i++) {
-        let [x, y, raio, cor] = calcular_parametros_para_celulas(canvas.width, canvas.height, raio_celulas, cor_celulas);
-        inicializar_celula(celulas[i], x, y, raio, cor);
-        
-        // verifica se a célula não vai ficar em cima de nenhuma já incializada
-        let j = 0;
-        let dist = 0;
-        while (j <= i) {
-            if (j != i){
-                dist = calcular_distancia_entre_objetos_redondos(celulas[j], celulas[i]);
-            
-            
-                if (dist <= 2*raio_celulas) {
-                    let [x, y, raio, cor] = calcular_parametros_para_celulas(canvas.width, canvas.height, raio_celulas, cor_celulas);
-                    inicializar_celula(celulas[i], x, y, raio, cor);
-                    j = 0; // Reinicia o loop
-                    continue; // Volta para o início do loop sem executar o restante do código
-                }
-            }            
-            j++;
-        }
-    }
-    // ----------------------------------------------------------------------------
-
-    // incializar comidas ---------------------------------------------------------
-    for (let i = 0; i < quant_comidas; i++) {
-        // a comida é uma célula
-        let [x, y, raio, cor] = calcular_parametros_para_celulas(canvas.width, canvas.height, raio_comidas, cor_comidas);
-        inicializar_celula(comidas[i], x, y, raio, cor);
-        
-        // não tem problemas as comidas nascerem amontoadas
-        // verifica se a comida está em cima de uma célula
-        let j = 0;
-        let dist_comida_cel = 0;
-        while (j < quant_celulas) {
-            dist_comida_cel = calcular_distancia_entre_objetos_redondos(celulas[j], comidas[i]);
-
-            if (dist_comida_cel <= raio_comidas + raio_celulas) {
-                let [x, y, raio, cor] = calcular_parametros_para_celulas(canvas.width, canvas.height, raio_comidas, cor_comidas);
-                inicializar_celula(comidas[i], x, y, raio, cor);
-                j = 0; // Reinicia o loop
-                continue; // Volta para o início do loop sem executar o restante do código
-            }
-            j++;
-        }
-    }
-    // ----------------------------------------------------------------------------
+    reinicializar_variaveis_jogo(jogo);
+    inicializar_celulas(celulas, jogo);
+    inicializar_comidas(comidas, celulas, jogo);
 }
 
 function rodar_jogo() {
+
     // para a execução se jogo_rodando for false
-    if (jogo_rodando == false){
+    if (jogo.jogo_rodando == false){
         return;
     } 
 
     limpar_canvas(ctx, canvas);
+    desenhar_elementos(ctx, celulas, comidas, jogo);
 
-    for (let i = 0; i < quant_celulas; i++) {
-        desenhar_celula(ctx, celulas[i]);
+    if (jogo.play == true && jogo.pause == false){
+        detectar_colisoes(celulas, jogo);
+        atualizar_posicao_celulas(celulas, jogo);
+        //mudar_direcao_celulas(celulas[i]);
     }
-    
-    // a comida é uma célula
-    for (let i = 0; i < quant_comidas; i++) {
-        desenhar_celula(ctx, comidas[i]);
-    }
-
-    if (estado_jogo.play == true && estado_jogo.pause == false){
-        for (let i = 0; i < quant_celulas; i++) {
-            atualizar_posicao_celula(celulas[i], canvas.width, canvas.height);
-        }
-    }
-
-    detectar_colisoes(celulas, quant_celulas, canvas.width, canvas.height);
 
     // chama a função novamente para continuar o loop
-    requestAnimationFrame(rodar_jogo);
+    //requestAnimationFrame(rodar_jogo);
+    setTimeout(() => {
+        requestAnimationFrame(rodar_jogo);
+    }, 1000 / 60); // Define 60 FPS (1000 ms / 60)
 }
 
 // inicia o jogo
@@ -133,8 +82,13 @@ carregar_jogo();
 rodar_jogo();
 
 // eventos dos botões
-canvas_botao_play.addEventListener("click", () => dar_play(estado_jogo));
-canvas_botao_pause.addEventListener("click", () => dar_pause(estado_jogo));
+// dar_play e dar_pause seriam chamadas automaticamente, mesmo sem clicar
+// porque tem (), com parâmetros ou sem
+// então os outros () antes delas servem para só serem chamados ao ser clicado
+// e depois chamam as funções com o =>
+canvas_botao_play.addEventListener("click", () => dar_play(jogo));
+canvas_botao_pause.addEventListener("click", () => dar_pause(jogo));
+// carregar_jogo só é chamada ao clicar
 canvas_botao_restart.addEventListener("click", carregar_jogo);
 
 // --------------------------------------------------------------------------------
