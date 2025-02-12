@@ -2,10 +2,10 @@
 
 // importações --------------------------------------------------------------------
 // funções
-import { atualizar_posicao_celulas, atualizar_posicao_comidas, dar_pause, dar_play, desenhar_elementos, detectar_colisoes, inicializar_celulas, inicializar_comidas, limpar_canvas, mudar_direcao_celulas, reinicializar_variaveis_jogo } from './scripts/funcoes.js';
+import { atualizar_posicao_elementos, dar_pause, dar_play, desenhar_elementos, detectar_colisoes, inicializar_elementos, limpar_canvas, mudar_direcao_elementos, reinicializar_variaveis_jogo, remover_celulas_comidas } from './scripts/funcoes.js';
 
 // objetos
-import { celulas, comidas, quant_celulas, quant_comidas } from './scripts/objetos.js';
+import { celulas, comidas, predadores, quant_celulas, quant_comidas, quant_predadores } from './scripts/objetos.js';
 
 // --------------------------------------------------------------------------------
 
@@ -34,14 +34,21 @@ let jogo = {
     play: true, 
     pause: false,
 
+    copia_celulas: structuredClone(celulas),
     raio_celulas: 3*unidade_minima,
     cor_celulas: "blue",
     velocidade_celulas: 5,
+    quant_celulas_inicial: quant_celulas,
     quant_celulas: quant_celulas,
 
     raio_comidas: unidade_minima,
     cor_comidas: "green",
-    quant_comidas: quant_comidas
+    quant_comidas: quant_comidas,
+
+    raio_predadores: (3*unidade_minima)*1.5,
+    cor_predadores: "red",
+    velocidade_predadores: 7,
+    quant_predadores: quant_predadores
 };
 
 // --------------------------------------------------------------------------------
@@ -49,9 +56,8 @@ let jogo = {
 // exucação do jogo ---------------------------------------------------------------
 
 function carregar_jogo(){
-    reinicializar_variaveis_jogo(jogo);
-    inicializar_celulas(celulas, jogo);
-    inicializar_comidas(comidas, celulas, jogo);
+    reinicializar_variaveis_jogo(jogo, celulas);
+    inicializar_elementos(jogo.copia_celulas, comidas, predadores, jogo);
 }
 
 function rodar_jogo() {
@@ -62,13 +68,13 @@ function rodar_jogo() {
     } 
 
     limpar_canvas(ctx, canvas);
-    desenhar_elementos(ctx, celulas, comidas, jogo);
+    desenhar_elementos(ctx, jogo.copia_celulas, comidas, predadores, jogo);
 
     if (jogo.play == true && jogo.pause == false){
-        detectar_colisoes(celulas, comidas, jogo);
-        atualizar_posicao_celulas(celulas, jogo);
-        atualizar_posicao_comidas(comidas, celulas, jogo);
-        mudar_direcao_celulas(celulas, jogo);
+        detectar_colisoes(jogo.copia_celulas, comidas, predadores, jogo);
+        remover_celulas_comidas(jogo.copia_celulas, jogo);
+        atualizar_posicao_elementos(jogo.copia_celulas, predadores, comidas, jogo);
+        mudar_direcao_elementos(jogo.copia_celulas, predadores, jogo);
     }
 
     // chama a função novamente para continuar o loop

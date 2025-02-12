@@ -62,6 +62,46 @@ function atualizar_posicao_comidas(comidas, celulas, jogo){
     }
 }
 
+function atualizar_posicao_predadores(predadores, jogo){
+
+    for (let i = 0; i < jogo.quant_predadores; i++) {
+
+        if (predadores[i].esta_parede_esq == 1){
+            predadores[i].x = 0 + predadores[i].raio;
+        }
+        if (predadores[i].esta_parede_dir == 1){
+            predadores[i].x = jogo.largura_canvas - predadores[i].raio;
+        }
+        if (predadores[i].esta_parede_baixo == 1){
+            predadores[i].y = jogo.altura_canvas - predadores[i].raio;
+        }
+        if (predadores[i].esta_parede_cima == 1){
+            predadores[i].y = 0 + predadores[i].raio;
+        }
+
+        if (predadores[i].a == 1 && predadores[i].pode_andar_esq == 1){
+            predadores[i].x -= predadores[i].vel;
+        }
+        if (predadores[i].d == 1 && predadores[i].pode_andar_dir == 1){
+            predadores[i].x += predadores[i].vel;
+        }
+        if (predadores[i].s == 1 && predadores[i].pode_andar_baixo == 1){
+            predadores[i].y += predadores[i].vel;
+        }
+        if (predadores[i].w == 1 && predadores[i].pode_andar_cima == 1){
+            predadores[i].y -= predadores[i].vel;
+        }
+
+    }
+
+}
+
+function atualizar_posicao_elementos(celulas, predadores, comidas, jogo){
+    atualizar_posicao_celulas(celulas, jogo);
+    atualizar_posicao_comidas(comidas, celulas, jogo);
+    atualizar_posicao_predadores(predadores, jogo);
+}
+
 function calcular_distancia_entre_objetos_redondos(obj1, obj2){
     return Math.sqrt((obj1.x - obj2.x) ** 2 + (obj1.y - obj2.y) ** 2);
 }
@@ -96,12 +136,23 @@ function desenhar_comidas(ctx, comidas, jogo){
     }
 }
 
-function desenhar_elementos(ctx, celulas, comidas, jogo) {
-    desenhar_comidas(ctx, comidas, jogo);
-    desenhar_celulas(ctx, celulas, jogo);
+function desenhar_predadores(ctx, predadores, jogo){
+    for (let i = 0; i < jogo.quant_predadores; i++) {
+        ctx.beginPath();
+        ctx.arc(predadores[i].x, predadores[i].y, predadores[i].raio, 0, Math.PI * 2);
+        ctx.fillStyle = predadores[i].cor;
+        ctx.fill();
+        ctx.closePath();
+    }
 }
 
-function detectar_colisao_celulas(celulas, jogo) {
+function desenhar_elementos(ctx, celulas, comidas, predadores, jogo) {
+    desenhar_comidas(ctx, comidas, jogo);
+    desenhar_celulas(ctx, celulas, jogo);
+    desenhar_predadores(ctx, predadores, jogo);
+}
+
+function detectar_colisao_celulas_celulas(celulas, jogo) {
     for (let i = 0; i < jogo.quant_celulas; i++){
 
         celulas[i].pode_andar_esq = 1;
@@ -165,7 +216,7 @@ function detectar_colisao_celulas(celulas, jogo) {
     }
 }
 
-function detectar_colisao_comidas(celulas, comidas, jogo){
+function detectar_colisao_celulas_comidas(celulas, comidas, jogo){
     for (let i = 0; i < jogo.quant_celulas; i++){
         for (let j = 0; j < jogo.quant_comidas; j++){
             let dist = calcular_distancia_entre_objetos_redondos(celulas[i], comidas[j]);
@@ -177,7 +228,7 @@ function detectar_colisao_comidas(celulas, comidas, jogo){
     }
 }
 
-function detectar_colisao_paredes(celulas, jogo){
+function detectar_colisao_celulas_paredes(celulas, jogo){
 
     for (let i = 0; i < jogo.quant_celulas; i++){
 
@@ -222,10 +273,136 @@ function detectar_colisao_paredes(celulas, jogo){
     
 }
 
-function detectar_colisoes(celulas, comidas, jogo) {
-    detectar_colisao_paredes(celulas, jogo);
-    detectar_colisao_celulas(celulas, jogo);
-    detectar_colisao_comidas(celulas, comidas, jogo);
+function detectar_colisao_predadores_celulas(predadores, celulas, jogo){
+    for (let i = 0; i < jogo.quant_predadores; i++){
+        for (let j = 0; j < jogo.quant_celulas; j++){
+            let dist = calcular_distancia_entre_objetos_redondos(predadores[i], celulas[j]);
+            // só dá pra entender com um desenho
+            if (dist <= predadores[i].raio - celulas[j].raio){
+                celulas[j].foi_comida = true;
+            }
+        }
+    }
+}
+
+function detectar_colisao_predadores_paredes(predadores, jogo){
+
+    for (let i = 0; i < jogo.quant_predadores; i++){
+
+        // parede esquerda
+        if (predadores[i].x - predadores[i].raio <= 0){
+            predadores[i].esta_parede_esq = 1;
+            predadores[i].pode_andar_esq = 0;
+        }
+        else {
+            predadores[i].esta_parede_esq = 0;
+            predadores[i].pode_andar_esq = 1;
+        }
+        // parede direita
+        if (predadores[i].x + predadores[i].raio >= jogo.largura_canvas){
+            predadores[i].esta_parede_dir = 1;
+            predadores[i].pode_andar_dir = 0;
+        }
+        else {
+            predadores[i].esta_parede_dir = 0;
+            predadores[i].pode_andar_dir = 1;
+        }
+        // parede baixo
+        if (predadores[i].y + predadores[i].raio >= jogo.altura_canvas){
+            predadores[i].esta_parede_baixo = 1;
+            predadores[i].pode_andar_baixo = 0;
+        }
+        else {
+            predadores[i].esta_parede_baixo = 0;
+            predadores[i].pode_andar_baixo = 1;
+        }
+        // parede cima
+        if (predadores[i].y - predadores[i].raio <= 0){
+            predadores[i].esta_parede_cima = 1;
+            predadores[i].pode_andar_cima = 0;
+        }
+        else {
+            predadores[i].esta_parede_cima = 0;
+            predadores[i].pode_andar_cima = 1;
+        }
+
+    }
+
+}
+
+function detectar_colisao_predadores_predadores(predadores, jogo){
+
+    for (let i = 0; i < jogo.quant_predadores; i++){
+
+        predadores[i].pode_andar_esq = 1;
+        predadores[i].pode_andar_dir = 1;
+        predadores[i].pode_andar_cima = 1;
+        predadores[i].pode_andar_baixo = 1;
+
+        for (let j = 0; j < jogo.quant_predadores; j++){
+            if (i != j) {
+                let dist = calcular_distancia_entre_objetos_redondos(predadores[i], predadores[j]);
+                if (dist <= 2*predadores[i].raio + 1){
+
+                    // se estiver no lado direito da outra célula
+                    if (predadores[i].x > predadores[j].x) {
+                        predadores[i].esta_encostada_outra_cel_esq = 1;
+                        predadores[i].pode_andar_esq = 0;
+
+                        predadores[j].esta_encostada_outra_cel_dir = 1;
+                        predadores[j].pode_andar_dir = 0;
+                    }
+
+                    // se estiver no lado esquerdo da outra célula
+                    if (predadores[i].x < predadores[j].x) {
+                        predadores[i].esta_encostada_outra_cel_dir = 1;
+                        predadores[i].pode_andar_dir = 0;
+
+                        predadores[j].esta_encostada_outra_cel_esq = 1;
+                        predadores[j].pode_andar_esq = 0;
+                    }
+
+                    // se estiver em cima da outra célula
+                    if (predadores[i].y < predadores[j].y) {
+                        predadores[i].esta_encostada_outra_cel_baixo = 1;
+                        predadores[i].pode_andar_baixo = 0;
+
+                        predadores[j].esta_encostada_outra_cel_cima = 1;
+                        predadores[j].pode_andar_cima = 0;
+                    }
+
+                    // se estiver em baixo da outra célula
+                    if (predadores[i].y > predadores[j].y) {
+                        predadores[i].esta_encostada_outra_cel_cima = 1;
+                        predadores[i].pode_andar_cima = 0;
+
+                        predadores[j].esta_encostada_outra_cel_baixo = 1;
+                        predadores[j].pode_andar_baixo = 0;
+                    }
+
+                    if (predadores[i].esta_encostada_outra_cel_dir ||  predadores[i].esta_encostada_outra_cel_esq || predadores[i].esta_encostada_outra_cel_cima || predadores[i].esta_encostada_outra_cel_baixo 
+                        || 
+                        predadores[j].esta_encostada_outra_cel_dir ||  predadores[j].esta_encostada_outra_cel_esq || predadores[j].esta_encostada_outra_cel_cima || predadores[j].esta_encostada_outra_cel_baixo
+                    ) {
+                        predadores[i].esta_encostada_outra_cel = 1;
+                        predadores[j].esta_encostada_outra_cel = 1;
+                        break;
+                    }
+
+                }
+            }
+        }
+    }
+    
+}
+
+function detectar_colisoes(celulas, comidas, predadores, jogo) {
+    detectar_colisao_celulas_paredes(celulas, jogo);
+    detectar_colisao_celulas_celulas(celulas, jogo);
+    detectar_colisao_celulas_comidas(celulas, comidas, jogo);
+    detectar_colisao_predadores_paredes(predadores, jogo);
+    detectar_colisao_predadores_predadores(predadores, jogo);
+    detectar_colisao_predadores_celulas(predadores, celulas, jogo);
 }
 
 function inicializar_celulas(celulas, jogo){
@@ -243,11 +420,12 @@ function inicializar_celulas(celulas, jogo){
     for (let i = 0; i < jogo.quant_celulas; i++){
         celulas[i].x = Math.floor(Math.random() * (jogo.largura_canvas - jogo.raio_celulas - jogo.raio_celulas + 1) + jogo.raio_celulas);
         celulas[i].y = Math.floor(Math.random() * (jogo.altura_canvas - jogo.raio_celulas - jogo.raio_celulas + 1) + jogo.raio_celulas);
-        
+
         // garante que a célula não vai ficar em cima de nenhuma já incializada ---
         let j = 0;
         let dist = 0;
         while (j <= i) {
+
             if (j != i){
                 dist = calcular_distancia_entre_objetos_redondos(celulas[j], celulas[i]);
                 if (dist <= 2*jogo.raio_celulas) {
@@ -258,6 +436,7 @@ function inicializar_celulas(celulas, jogo){
                 }
             }            
             j++;
+           
         }
         // ------------------------------------------------------------------------
         
@@ -287,6 +466,8 @@ function inicializar_celulas(celulas, jogo){
         celulas[i].esta_encostada_outra_cel_cima = 0;
         celulas[i].esta_encostada_outra_cel_baixo = 0;
         celulas[i].esta_encostada_outra_cel = 0;
+
+        celulas[i].foi_comida = false;
         // ------------------------------------------------------------------------
     }
     // ----------------------------------------------------------------------------
@@ -324,6 +505,66 @@ function inicializar_comidas(comidas, celulas, jogo){
 
 }
 
+function inicializar_predadores(predadores, celulas, jogo){
+
+    // calcula as coordenadas dos predadores --------------------------------------
+    for (let i = 0; i < jogo.quant_predadores; i++) {
+        predadores[i].x = Math.floor(Math.random() * (jogo.largura_canvas - jogo.raio_predadores - jogo.raio_predadores + 1) + jogo.raio_predadores);
+        predadores[i].y = Math.floor(Math.random() * (jogo.altura_canvas - jogo.raio_predadores - jogo.raio_predadores + 1) + jogo.raio_predadores);
+        
+        // garante que o predador não vai ficar em cima de nenhuma célula ---------
+        let j = 0;
+        let dist_predador_cel = 0;
+        while (j < jogo.quant_celulas) {
+            dist_predador_cel = calcular_distancia_entre_objetos_redondos(celulas[j], predadores[i]);
+
+            if (dist_predador_cel <= jogo.raio_predadores + jogo.raio_celulas + 1) {
+                predadores[i].x = Math.floor(Math.random() * (jogo.largura_canvas - jogo.raio_predadores - jogo.raio_predadores + 1) + jogo.raio_predadores);
+                predadores[i].y = Math.floor(Math.random() * (jogo.altura_canvas - jogo.raio_predadores - jogo.raio_predadores + 1) + jogo.raio_predadores);
+                j = 0; // Reinicia o loop
+                continue; // Volta para o início do loop sem executar o restante do código
+            }
+            j++;
+        }
+        // ------------------------------------------------------------------------
+
+        // o resto dos parâmetros -------------------------------------------------
+        predadores[i].raio = jogo.raio_predadores;
+        predadores[i].cor = jogo.cor_predadores;
+        predadores[i].vel = jogo.velocidade_predadores;
+
+        predadores[i].pode_andar_esq = 1; 
+        predadores[i].pode_andar_dir = 1; 
+        predadores[i].pode_andar_cima = 1; 
+        predadores[i].pode_andar_baixo = 1; 
+
+        predadores[i].w = Math.round(Math.random()); 
+        predadores[i].s = Math.round(Math.random()); 
+        predadores[i].a = Math.round(Math.random()); 
+        predadores[i].d = Math.round(Math.random());
+
+        predadores[i].esta_parede_esq = 0; 
+        predadores[i].esta_parede_dir = 0; 
+        predadores[i].esta_parede_cima = 0; 
+        predadores[i].esta_parede_baixo = 0;
+
+        predadores[i].esta_encostada_outra_cel_esq = 0;
+        predadores[i].esta_encostada_outra_cel_dir = 0;
+        predadores[i].esta_encostada_outra_cel_cima = 0;
+        predadores[i].esta_encostada_outra_cel_baixo = 0;
+        predadores[i].esta_encostada_outra_cel = 0;
+    // ----------------------------------------------------------------------------
+    }
+    // ----------------------------------------------------------------------------
+
+}
+
+function inicializar_elementos(celulas, comidas, predadores, jogo){
+    inicializar_celulas(celulas, jogo);
+    inicializar_comidas(comidas, celulas, jogo);
+    inicializar_predadores(predadores, celulas, jogo);
+}
+
 function limpar_canvas(ctx, canvas) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
@@ -341,11 +582,40 @@ function mudar_direcao_celulas(celulas, jogo) {
     }
 }
 
-function reinicializar_variaveis_jogo(jogo){
+function mudar_direcao_predadores(predadores, jogo){
+    for (let i = 0; i < jogo.quant_predadores; i++) {
+        if (Math.floor(Math.random() * 101) < 5)
+            predadores[i].w = Math.round(Math.random()); 
+        if (Math.floor(Math.random() * 101) < 5)
+            predadores[i].s = Math.round(Math.random()); 
+        if (Math.floor(Math.random() * 101) < 5)
+            predadores[i].a = Math.round(Math.random()); 
+        if (Math.floor(Math.random() * 101) < 5)
+            predadores[i].d = Math.round(Math.random());
+    }
+}
+
+function mudar_direcao_elementos(celulas, predadores, jogo){
+    mudar_direcao_celulas(celulas, jogo);
+    mudar_direcao_predadores(predadores, jogo);
+}
+
+function reinicializar_variaveis_jogo(jogo, celulas){
     jogo.jogo_rodando = true;
     jogo.play = true;
     jogo.pause = false;
+    jogo.quant_celulas = jogo.quant_celulas_inicial;
+    jogo.copia_celulas = structuredClone(celulas);
+}
+
+function remover_celulas_comidas(celulas, jogo){
+    for (let i = 0; i < jogo.quant_celulas; i++) {
+        if (celulas[i].foi_comida == true){
+            celulas.splice(i, 1);
+            jogo.quant_celulas -= 1;
+        }
+    }
 }
 
 // Exportar as funções para serem usadas em outros arquivos
-export { atualizar_posicao_celulas, atualizar_posicao_comidas ,dar_pause, dar_play, desenhar_elementos, detectar_colisoes, inicializar_celulas, inicializar_comidas, limpar_canvas, mudar_direcao_celulas, reinicializar_variaveis_jogo };
+export { atualizar_posicao_elementos, dar_pause, dar_play, desenhar_elementos, detectar_colisoes, inicializar_elementos, limpar_canvas, mudar_direcao_elementos, reinicializar_variaveis_jogo, remover_celulas_comidas };
